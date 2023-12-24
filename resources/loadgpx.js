@@ -1,3 +1,6 @@
+// Autore: Marco Solinas
+// Tutti i diritti sono riservati
+
 var map = new ol.Map({
     // Configurazioni della mappa...
 });
@@ -99,19 +102,19 @@ function calcolaLunghezzaTraccia() {
 		
             } else {
                 console.error('Nessuna coordinata trovata nel file GPX.');
-                document.getElementById('lunghezzaTraccia').innerHTML = ' Nessuna coordinata trovata ';
+                document.getElementById('lunghezzaTraccia').innerHTML = ' Geometria non valida ';
 		
             }
         } catch (error) {
             console.error('Errore durante la lettura del file GPX:', error);
-            document.getElementById('lunghezzaTraccia').innerHTML = ' Errore durante la lettura del file GPX ';
+            document.getElementById('lunghezzaTraccia').innerHTML = ' Errore di lettura GPX ';
 		
         }
     };
 
     reader.onerror = function (event) {
         console.error('Errore durante il caricamento del file:', event.target.error);
-        document.getElementById('lunghezzaTraccia').innerHTML = ' Errore durante il caricamento del file ';
+        document.getElementById('lunghezzaTraccia').innerHTML = ' Errore nel caricamento ';
 	
     };
 
@@ -165,19 +168,19 @@ function calcolaDislivelloPositivo() {
 		
             } else {
                 console.error('Menouno punto di altitudine nella traccia GPX.');
-                document.getElementById('dislivelloPositivo').innerHTML = ' Non abbastanza dati per calcolare il dislivello positivo ';
+                document.getElementById('dislivelloPositivo').innerHTML = ' Dati insufficienti ';
 		
             }
         } catch (error) {
             console.error('Errore durante la lettura del file GPX:', error);
-            document.getElementById('dislivelloPositivo').innerHTML = ' Errore durante la lettura del file GPX ';
+            document.getElementById('dislivelloPositivo').innerHTML = ' Errore di lettura GPX ';
 		
         }
     };
 
     reader.onerror = function (event) {
         console.error('Errore durante il caricamento del file:', event.target.error);
-        document.getElementById('dislivelloPositivo').innerHTML = ' Errore durante il caricamento del file ';
+        document.getElementById('dislivelloPositivo').innerHTML = ' Errore nel caricamento ';
 	
     };
 

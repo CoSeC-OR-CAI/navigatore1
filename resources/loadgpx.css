@@ -1,0 +1,7 @@
+#barraInput {position:fixed;bottom:0px;left:0px;z-index:1;padding-left:4px;padding-right:2px;padding-top:2px;padding-bottom:2px;height:22px;background-color:white;width:614px;border-radius:0px 5px 0px 0px;opacity:0;}
+#barraInput:hover{opacity:0.8;}
+#creditsmappe {position:fixed;bottom:20px;right:0px;z-index:2;background-color:white;display:none;border-radius:5px 0px 0px 0px;}
+#creditsmappe td{text-align:right;padding-right:4px;padding-left:4px;}
+#credits:hover table{display:block;opacity:0.8;}
+#lunghezzaTraccia {position:fixed;line-height:24px;bottom:26px;left:0px;width:150px;padding-left:4px;background-color:black;color:white;opacity:1;}
+#dislivelloPositivo {position:fixed;line-height:24px;bottom:26px;left:150px;width:200px;background-color:black;color:white;opacity:1;border-radius:0px 5px 0px 0px;}

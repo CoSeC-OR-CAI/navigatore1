@@ -1,0 +1,216 @@
+var map = new ol.Map({
+    // Configurazioni della mappa...
+});
+
+var canvas = document.querySelector('canvas');
+if (canvas) {
+    canvas.willReadFrequently = true;
+}
+
+function loadGPX() {
+    var fileInput = document.getElementById('fileInput');
+    var file = fileInput.files[0];
+
+    if (file) {
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            try {
+                var gpxData = e.target.result;
+
+                console.log('GPX Data:', gpxData);
+
+                var format = new ol.format.GPX();
+                var features = format.readFeatures(gpxData, {
+                    dataProjection: 'EPSG:4326',
+                    featureProjection: 'EPSG:3857'
+                });
+
+                if (features.length === 0) {
+                    console.error('Nessuna feature trovata nel file GPX.');
+                    return;
+                }
+
+                var vectorSource = new ol.source.Vector({
+                    features: features
+                });
+
+                var vectorLayer = new ol.layer.Vector({
+                    source: vectorSource,
+                    style: new ol.style.Style({
+                        stroke: new ol.style.Stroke({
+                            color: 'red', // Colore rosso
+                            width: 3 // Spessore 3px
+                        })
+                    })
+                });
+
+                map.addLayer(vectorLayer);
+
+                // Calcola il centro della traccia
+                var center = ol.extent.getCenter(vectorSource.getExtent());
+
+                // Imposta la vista della mappa sul centro della traccia
+                map.getView().setCenter(center);
+
+                // Imposta lo zoom per far sì che la traccia occupi solo l'85% della finestra del browser
+                var extentWidth = ol.extent.getWidth(vectorSource.getExtent());
+                var extentHeight = ol.extent.getHeight(vectorSource.getExtent());
+                var resolution = Math.max(extentWidth / (map.getSize()[0] * 0.85), extentHeight / (map.getSize()[1] * 0.85));
+                var zoom = map.getView().getZoomForResolution(resolution);
+                map.getView().setZoom(zoom);
+            } catch (error) {
+                console.error('Errore durante la lettura del file GPX:', error);
+            }
+        };
+
+        reader.onerror = function (event) {
+            console.error('Errore durante il caricamento del file:', event.target.error);
+        };
+
+        reader.readAsText(file);
+    } else {
+        console.error('Nessun file selezionato.');
+    }
+}
+
+
+function calcolaLunghezzaTraccia() {
+    var fileInput = document.getElementById('fileInput');
+    var file = fileInput.files[0];
+
+    if (!file) {
+        console.error('Nessun file selezionato.');
+        return;
+    }
+
+    var reader = new FileReader();
+    reader.onload = function (e) {
+        try {
+            var gpxData = e.target.result;
+
+            var parser = new DOMParser();
+            var xmlDoc = parser.parseFromString(gpxData, 'text/xml');
+
+            var coordinates = getGPXCoordinates(xmlDoc);
+            
+            if (coordinates.length > 0) {
+                var lunghezzaTotale = calcolaLunghezza(coordinates);
+                document.getElementById('lunghezzaTraccia').innerHTML = ' Lunghezza: ' + lunghezzaTotale.toFixed(2) + ' km ';
+		
+            } else {
+                console.error('Nessuna coordinata trovata nel file GPX.');
+                document.getElementById('lunghezzaTraccia').innerHTML = ' Nessuna coordinata trovata ';
+		
+            }
+        } catch (error) {
+            console.error('Errore durante la lettura del file GPX:', error);
+            document.getElementById('lunghezzaTraccia').innerHTML = ' Errore durante la lettura del file GPX ';
+		
+        }
+    };
+
+    reader.onerror = function (event) {
+        console.error('Errore durante il caricamento del file:', event.target.error);
+        document.getElementById('lunghezzaTraccia').innerHTML = ' Errore durante il caricamento del file ';
+	
+    };
+
+    reader.readAsText(file);
+}
+
+function getGPXCoordinates(xmlDoc) {
+    var coordinates = [];
+
+    var trackpoints = xmlDoc.querySelectorAll('trkpt');
+    trackpoints.forEach(function (point) {
+        var lat = parseFloat(point.getAttribute('lat'));
+        var lon = parseFloat(point.getAttribute('lon'));
+        coordinates.push([lon, lat]);
+    });
+
+    return coordinates;
+}
+
+function calcolaLunghezza(coordinates) {
+    var lineString = new ol.geom.LineString(coordinates);
+    var lunghezzaTotale = ol.sphere.getLength(lineString, { projection: 'EPSG:4326' });
+
+    return lunghezzaTotale / 1000; // Converti da metri a chilometri
+}
+
+
+
+function calcolaDislivelloPositivo() {
+    var fileInput = document.getElementById('fileInput');
+    var file = fileInput.files[0];
+
+    if (!file) {
+        console.error('Nessun file selezionato.');
+        return;
+    }
+
+    var reader = new FileReader();
+    reader.onload = function (e) {
+        try {
+            var gpxData = e.target.result;
+
+            var parser = new DOMParser();
+            var xmlDoc = parser.parseFromString(gpxData, 'text/xml');
+
+            var elevations = getGPXElevations(xmlDoc);
+
+            if (elevations.length > 1) {
+                var dislivelloPositivo = calcolaDislivelloPositivoTotale(elevations);
+                document.getElementById('dislivelloPositivo').innerHTML = ' Salite cumulate: ' + dislivelloPositivo.toFixed(2) + ' metri ';
+		
+            } else {
+                console.error('Menouno punto di altitudine nella traccia GPX.');
+                document.getElementById('dislivelloPositivo').innerHTML = ' Non abbastanza dati per calcolare il dislivello positivo ';
+		
+            }
+        } catch (error) {
+            console.error('Errore durante la lettura del file GPX:', error);
+            document.getElementById('dislivelloPositivo').innerHTML = ' Errore durante la lettura del file GPX ';
+		
+        }
+    };
+
+    reader.onerror = function (event) {
+        console.error('Errore durante il caricamento del file:', event.target.error);
+        document.getElementById('dislivelloPositivo').innerHTML = ' Errore durante il caricamento del file ';
+	
+    };
+
+    reader.readAsText(file);
+}
+
+function getGPXElevations(xmlDoc) {
+    var elevations = [];
+
+    var trackpoints = xmlDoc.querySelectorAll('trkpt');
+    trackpoints.forEach(function (point) {
+        var elevation = parseFloat(point.querySelector('ele').textContent);
+        elevations.push(elevation);
+    });
+
+    return elevations;
+}
+
+function calcolaDislivelloPositivoTotale(elevations) {
+    var dislivelloPositivo = 0;
+
+    for (var i = 1; i < elevations.length; i++) {
+        var differenzaAltitudine = elevations[i] - elevations[i - 1];
+        if (differenzaAltitudine > 0) {
+            dislivelloPositivo += differenzaAltitudine;
+        }
+    }
+
+    return dislivelloPositivo;
+}
+
+
+function LeggilaTraccia() {
+calcolaLunghezzaTraccia();
+calcolaDislivelloPositivo();
+}

@@ -102,7 +102,7 @@ function calcolaLunghezzaTraccia() {
 		
             } else {
                 console.error('Nessuna coordinata trovata nel file GPX.');
-                document.getElementById('lunghezzaTraccia').innerHTML = ' Geometria non valida ';
+                document.getElementById('lunghezzaTraccia').innerHTML = ' Geometrie non valide ';
 		
             }
         } catch (error) {
@@ -164,11 +164,11 @@ function calcolaDislivelloPositivo() {
 
             if (elevations.length > 1) {
                 var dislivelloPositivo = calcolaDislivelloPositivoTotale(elevations);
-                document.getElementById('dislivelloPositivo').innerHTML = ' Salite cumulate: ' + dislivelloPositivo.toFixed(2) + ' metri ';
+                document.getElementById('dislivelloPositivo').innerHTML = ' Salite cumulate: ' + dislivelloPositivo.toFixed(0) + ' metri ';
 		
             } else {
                 console.error('Menouno punto di altitudine nella traccia GPX.');
-                document.getElementById('dislivelloPositivo').innerHTML = ' Dati insufficienti ';
+                document.getElementById('dislivelloPositivo').innerHTML = ' Dati N/D ';
 		
             }
         } catch (error) {
@@ -209,11 +209,86 @@ function calcolaDislivelloPositivoTotale(elevations) {
         }
     }
 
+    dislivelloPositivo = Math.round(dislivelloPositivo);
     return dislivelloPositivo;
+}
+
+
+function calcolaTempoIntercorso() {
+    var fileInput = document.getElementById('fileInput');
+    var file = fileInput.files[0];
+
+    if (!file) {
+        console.error('Nessun file selezionato.');
+        return;
+    }
+
+    var reader = new FileReader();
+    reader.onload = function (e) {
+        try {
+            var gpxData = e.target.result;
+
+            var parser = new DOMParser();
+            var xmlDoc = parser.parseFromString(gpxData, 'text/xml');
+
+            var tempi = getGPXTempi(xmlDoc);
+
+            if (tempi.length >= 2) {
+                var tempoIntercorso = calcolaTempoIntercorsoTotale(tempi);
+                document.getElementById('tempoIntercorso').innerHTML = ' Tempo: ' + formattaTempoIntercorso(tempoIntercorso);
+            } else {
+                console.error('Menouno punto di tempo nella traccia GPX.');
+                document.getElementById('tempoIntercorso').innerHTML = ' Dati N/D ';
+            }
+        } catch (error) {
+            console.error('Errore durante la lettura del file GPX:', error);
+            document.getElementById('tempoIntercorso').innerHTML = ' Errore di lettura GPX ';
+        }
+    };
+
+    reader.onerror = function (event) {
+        console.error('Errore durante il caricamento del file:', event.target.error);
+        document.getElementById('tempoIntercorso').innerHTML = ' Errore nel caricamento ';
+    };
+
+    reader.readAsText(file);
+}
+
+function getGPXTempi(xmlDoc) {
+    var tempi = [];
+
+    var trackpoints = xmlDoc.querySelectorAll('trkpt');
+    trackpoints.forEach(function (point) {
+        var tempo = new Date(point.querySelector('time').textContent);
+        tempi.push(tempo);
+    });
+
+    return tempi;
+}
+
+function calcolaTempoIntercorsoTotale(tempi) {
+    var tempoInizio = tempi[0];
+    var tempoFine = tempi[tempi.length - 1];
+
+    return tempoFine - tempoInizio;
+}
+
+function formattaTempoIntercorso(diffTempo) {
+    var giorni = Math.floor(diffTempo / (1000 * 60 * 60 * 24));
+    var oreResidue = Math.floor((diffTempo % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    var minutiResidui = Math.floor((diffTempo % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (giorni >= 1) {
+        return giorni + ' giorni, ' + oreResidue + ' ore e ' + minutiResidui + ' minuti';
+    } else {
+        return oreResidue + ' ore e ' + minutiResidui + ' minuti';
+    }
 }
 
 
 function LeggilaTraccia() {
 calcolaLunghezzaTraccia();
 calcolaDislivelloPositivo();
+calcolaTempoIntercorso();
 }
+

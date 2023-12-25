@@ -4,4 +4,5 @@
 #creditsmappe td{text-align:right;padding-right:4px;padding-left:4px;}
 #credits:hover table{display:block;opacity:0.8;}
 #lunghezzaTraccia {position:fixed;line-height:24px;bottom:26px;left:0px;width:150px;padding-left:4px;background-color:black;color:white;opacity:1;}
-#dislivelloPositivo {position:fixed;line-height:24px;bottom:26px;left:150px;width:200px;background-color:black;color:white;opacity:1;border-radius:0px 5px 0px 0px;}
+#dislivelloPositivo {position:fixed;line-height:24px;bottom:26px;left:150px;width:170px;background-color:black;color:white;opacity:1;}
+#tempoIntercorso {position:fixed;line-height:24px;bottom:26px;left:320px;width:230px;background-color:black;color:white;opacity:1;border-radius:0px 5px 0px 0px;}
